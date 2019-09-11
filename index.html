@@ -4,17 +4,19 @@
     <meta charset="UTF-8">
     <title>Weather API</title>
     <link rel="stylesheet" href="./assets/css/bootstrap.css" type="text/css">
+    <link rel="stylesheet" href="./assets/css/style.css" type="text/css">
 
 </head>
 <template id="weatherCard">
     <div class="card text-white bg-primary">
         <div class="card-header">
             <h3 class="card-title location"></h3>
-            <h5 class="card-title weatherCondition"></h5>
+            <h5 class="card-title weather-condition"></h5>
         </div>
-        <div class="card-body">
+        <div class="card-body bg-warning">
+            <img src="" alt="weather icon" class="weather-icon">
             <h1 class="card-title temperature"></h1>
-            <p class="card-text weatherInfo"></p>
+            <p class="card-text weather-info"></p>
         </div>
         <div class="card-footer">
             <p class="card-text"><small class="date"></small></p>
@@ -22,27 +24,23 @@
     </div>
 </template>
 <body class="bg-dark">
-    <div class="container col-md-10 bg-secondary mt-5">
-        <div class="card-columns bg-info">
-            <!--cards come here-->
-            <div class="card text-white bg-primary">
-                <div class="card-header">
-                    <div class="">
-                    </div>
-                    <div>
-                        <h3 class="card-title">Antwerp</h3>
-                        <h5 class="card-title">Overcast cloudy</h5>
-                    </div>
-
-                </div>
-                <div class="card-body bg-warning">
-                    <h1 class="card-title">19°C</h1>
-                    <p class="card-text">Rain: 50%</p>
-                </div>
-                <div class="card-footer">
-                    <p class="card-text"><small>Friday 6 September 2019</small></p>
+    <div class="container col-md-10 mt-5">
+        <header class="">
+            <h1 class="text-center text-white">Weather Forecast</h1>
+            <div class="input-group mb-5 mt-5">
+                <input type="text" class="form-control" placeholder="City" aria-label="City" id="city">
+                <div class="input-group-append">
+                    <button class="btn btn-primary" type="button" id="forecast">Get Forecast</button>
                 </div>
             </div>
+
+        </header>
+        <div class="card-deck" id="predictions">
+
+                <!--cards come here-->
+
+
+
         </div>
     </div>
 

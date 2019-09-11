@@ -3,9 +3,18 @@
     * INITIAL VARIABLES
     * */
     //let cityName = prompt("Enter City");
-    let cityName = "Antwerp";
-    let fetchString = `https://api.openweathermap.org/data/2.5/forecast?q=${cityName}&units=metric&APPID=3ae19ea0d52400ef8dfbd919977321df`;
+    let cityName = "";
     const TODAY = new Date(), DAYS_IN_WEEK = 7, DAYS_IN_FORECAST = 5, LAST_WEEKDAY = 6;
+
+    /*
+    * MAIN
+    * when user enters city get the forecast for that city
+    * */
+    document.getElementById("forecast").addEventListener("click", function () {
+        document.getElementById("predictions").innerHTML = "";
+        cityName = document.getElementById("city").value;
+        getForecast(cityName);
+    });
 
     /*
     * FUNCTIONS
@@ -15,7 +24,6 @@
     function getAvgTemp(dayBeingProcessed){
         let tempsum = 0;
         dayBeingProcessed.forEach(function (timeslot){
-            //console.log(timeslot.main.temp);
             tempsum += timeslot.main.temp;
         });
         return Math.round(tempsum / dayBeingProcessed.length);
@@ -85,11 +93,17 @@
         });
         return Math.round(tempsum / dayBeingProcessed.length);
     }
-    //Get ...
+    //Get Date
+    function getDate(dayBeingProcessed) {
+        let options = { weekday: 'long'};
+        let date = new Date(dayBeingProcessed[0].dt*1000); //first value of the current dayBeingProcessed is sufficient
+        return date.toLocaleDateString('en-UK', options);
+    }
 
     //Console log all aggregated data
     function consoleLogData(dayBeingProcessed){
         console.log('NEW DAY');
+        console.log(getDate(dayBeingProcessed));
         console.log('Day being processed:');
         console.log(dayBeingProcessed);
         console.log('Avg Temp: ' + getAvgTemp(dayBeingProcessed) + '°C');
@@ -101,48 +115,73 @@
     }
 
     //Fill the template and append it to the HTML DOM
-    function fillTemplate(dayBeingProcessed){
+    function fillTemplate(dayBeingProcessed, city) {
+        //set variables to be used
+        let avgTemp = getAvgTemp(dayBeingProcessed),
+            minTemp = getMinTemp(dayBeingProcessed),
+            maxTemp = getMaxTemp(dayBeingProcessed),
+            weatherCondition = getWeatherCondition(dayBeingProcessed),
+            windSpeed = getAvgWind(dayBeingProcessed),
+            date = getDate(dayBeingProcessed);
+
+
+        let template = document.querySelector('#weatherCard');
+        let cardBody = document.querySelector("#predictions");
+
+        let location = template.content.querySelector(".location");
+        location.innerText = city;
+        let weather_condition = template.content.querySelector(".weather-condition");
+        weather_condition.innerText = weatherCondition.description;
+        let temperature = template.content.querySelector(".temperature");
+        temperature.innerText = avgTemp + "°C";
+        let weather_info = template.content.querySelector(".weather-info");
+        weather_info.innerText = "min: " + minTemp + "°C\n" + "max: " + maxTemp  + "°C\n" + "windspeed: " + windSpeed + "m/s";
+        let html_date = template.content.querySelector(".date");
+        html_date.innerText = date;
+        let weather_icon = template.content.querySelector(".weather-icon");
+        weather_icon.setAttribute("src", `http://openweathermap.org/img/wn/${weatherCondition.icon}@2x.png`);
+
+
+        let clone = template.content.cloneNode(true);
+        cardBody.appendChild(clone);
 
     }
 
     /*
-    * MAIN
+    * FETCH AND PROCESS FUNCTION
     * There seems to be an error at around midnight, where it cannot find info on the current day in the Json file
     * This needs fixing somehow
     * */
-    fetch(fetchString)
-        .then(function (response) {
-            return response.json();
-        })
-        .then(function (weather) {
-            let forecast = Array.from(weather.list);
+    function getForecast(city){
+        let fetchString = `https://api.openweathermap.org/data/2.5/forecast?q=${city}&units=metric&APPID=3ae19ea0d52400ef8dfbd919977321df`;
+        fetch(fetchString)
+            .then(function (response) {
+                return response.json();
+            })
+            .then(function (weather) {
+                let forecast = Array.from(weather.list);
 
-            console.log(TODAY.toLocaleDateString('en-UK', {weekday: 'long'}));
-            //console.log(date.getDay());
+                for(let i = 0; i < DAYS_IN_FORECAST; i++){
+                    let checkingDay;
+                    let date; //= new Date(forecast[5].dt_txt);
+                    let dayBeingProcessed = [];
 
-            for(let i = 0; i < DAYS_IN_FORECAST; i++){
-                let checkingDay;
-                let date; //= new Date(forecast[5].dt_txt);
-                let dayBeingProcessed = [];
+                    if (TODAY.getDay() + i > LAST_WEEKDAY){
+                        checkingDay = TODAY.getDay() + i - DAYS_IN_WEEK;
+                    } else {checkingDay = TODAY.getDay() + i;}
 
-                if (TODAY.getDay() + i > LAST_WEEKDAY){
-                    checkingDay = TODAY.getDay() + i - DAYS_IN_WEEK;
-                } else {checkingDay = TODAY.getDay() + i;}
+                    forecast.forEach(function (dataPoint){  //Error around midnight
+                        date = new Date(dataPoint.dt_txt);
+                        if (date.getDay() === checkingDay){
+                            dayBeingProcessed.push(dataPoint);
+                        }
+                    });
 
-                forecast.forEach(function (dataPoint){  //Error around midnight
-                    date = new Date(dataPoint.dt_txt);
-                    if (date.getDay() === checkingDay){
-                        dayBeingProcessed.push(dataPoint);
-                    }
-                });
-
-                //Show aggregated data in console
-                consoleLogData(dayBeingProcessed);
-
-
-            }
-
-
-
-        })
+                    //Show aggregated data in console
+                    consoleLogData(dayBeingProcessed);
+                    //fill template and append
+                    fillTemplate(dayBeingProcessed, city);
+                }
+            })
+    }
 })();
